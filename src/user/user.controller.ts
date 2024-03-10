@@ -191,4 +191,25 @@ export class UserController {
     });
     return '发送成功';
   }
+
+
+  @Post(['update', 'admin/update'])
+  @RequireLogin()
+  async update(@UserInfo('userId') userId: number, @Body() updateUserDto: UpdateUserDto) {
+    return await this.userService.update(userId, updateUserDto)
+  }
+
+  @Get('update/captcha')
+  async updateCaptcha(@Query('address') address: string) {
+    const code = Math.random().toString().slice(2, 8);
+
+    await this.redisServices.set(`update_user_captcha_${address}`, code, 10 * 60);
+
+    await this.emailService.sendMail({
+      to: address,
+      subject: '更改用户信息验证码',
+      html: `<p>你的验证码是 ${code}</p>`
+    });
+    return '发送成功';
+  }
 }
